@@ -146,10 +146,12 @@ def validation_score(r2, max_residual_pct, r2_lin):
         return "🔴 Failed", "#dc3545", "معايرة فاشلة — أعد المعايرة"
 
 def detect_outliers(x, y, coeffs, threshold_pct=15):
-    """Returns list of outlier indices"""
+    """Returns list of outlier indices — Blank points (conc=0) are excluded"""
     y_pred = np.polyval(coeffs, x)
     outliers = []
     for i in range(len(y)):
+        if y[i] == 0:          # Blank / Zero Standard — skip
+            continue
         if y_pred[i] != 0:
             pct = abs((y[i] - y_pred[i]) / y_pred[i]) * 100
             if pct > threshold_pct:
@@ -406,6 +408,7 @@ if st.session_state.coeffs is not None:
         ax3.plot(x_range2, y_fit2, color='blue', linewidth=2, label='Cubic Fit')
 
         outlier_indices = [o[0] for o in outliers]
+        blank_indices = [i for i in range(len(y)) if y[i] == 0]
         for i in range(len(x)):
             if i in outlier_indices:
                 ax3.scatter(x[i], y[i], color='red', zorder=6, s=150, marker='X',
@@ -413,6 +416,12 @@ if st.session_state.coeffs is not None:
                 ax3.annotate(f'Std#{i+1}\n⚠️', (x[i], y[i]),
                             textcoords="offset points", xytext=(8, 8),
                             color='red', fontsize=9)
+            elif i in blank_indices:
+                ax3.scatter(x[i], y[i], color='gray', zorder=5, s=80, marker='D',
+                           label='Blank (excluded)' if i == blank_indices[0] else "")
+                ax3.annotate(f'Blank', (x[i], y[i]),
+                            textcoords="offset points", xytext=(6, 6),
+                            color='gray', fontsize=8)
             else:
                 ax3.scatter(x[i], y[i], color='green', zorder=5, s=60)
 
@@ -429,13 +438,28 @@ if st.session_state.coeffs is not None:
         st.pyplot(fig3)
 
         st.write("#### جدول الانحرافات:")
+        dev_statuses = []
+        dev_deviations = []
+        for i in range(len(x)):
+            if y[i] == 0:
+                dev_statuses.append("⬜ Blank")
+                dev_deviations.append("—")
+            elif i in outlier_indices:
+                pct = abs((y[i] - y_pred[i]) / y_pred[i] * 100) if y_pred[i] != 0 else 0
+                dev_statuses.append("🔴 Outlier")
+                dev_deviations.append(f"{pct:.2f}%")
+            else:
+                pct = abs((y[i] - y_pred[i]) / y_pred[i] * 100) if y_pred[i] != 0 else 0
+                dev_statuses.append("✅ OK")
+                dev_deviations.append(f"{pct:.2f}%")
+
         dev_df = pd.DataFrame({
-            'Standard #': [f"Std {i+1}" for i in range(len(x))],
-            'Absorbance': np.round(x, 4),
-            'Actual Conc': np.round(y, 3),
+            'Standard #':   [f"Std {i+1}" for i in range(len(x))],
+            'Absorbance':   np.round(x, 4),
+            'Actual Conc':  np.round(y, 3),
             'Expected Conc': np.round(y_pred, 3),
-            'Deviation %': np.round(np.abs((y - y_pred) / y_pred * 100) if np.all(y_pred != 0) else np.zeros(len(y)), 2),
-            'Status': ['🔴 Outlier' if i in outlier_indices else '✅ OK' for i in range(len(x))]
+            'Deviation %':  dev_deviations,
+            'Status':       dev_statuses
         })
         st.dataframe(dev_df, use_container_width=True, hide_index=True)
 
