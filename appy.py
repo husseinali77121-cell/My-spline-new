@@ -62,7 +62,16 @@ if not st.session_state.authenticated:
                 st.rerun()
             else:
                 st.error("❌ البريد الإلكتروني أو كلمة المرور غير صحيحة.")
-        st.markdown("<br><center><small>Orange Lab © 2025</small></center>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("---")
+        st.markdown("""
+            <div style='text-align:center; padding: 10px 0 20px 0;'>
+                <p style='color:#E07B00; font-weight:bold; font-size:16px;'>📞 للتواصل &nbsp; Contact</p>
+                <p style='margin:4px 0; font-weight:bold;'>Dr / Hussein Ali</p>
+                <p style='margin:4px 0;'>📱 T: 01016872801</p>
+                <p style='margin:4px 0;'>📧 Email: hussein.ali77121@gmail.com</p>
+            </div>
+        """, unsafe_allow_html=True)
     st.stop()
 
 # ── Logged-in header ────────────────────────────────────────
@@ -669,5 +678,10 @@ if st.session_state.coeffs is not None:
                 st.error(f"خطأ في الإدخال: {e}")
 
 # ══════════════════════════════════════════════════════════════
-st.write("---")
-st.caption("🧪 Calibration Spline Curve Tool — Concentration = A·Abs³ + B·Abs² + C·Abs + D")
+st.markdown("---")
+st.markdown("""
+    <div style='text-align:center; padding: 10px 0 20px 0;'>
+        <p style='margin:4px 0; font-weight:bold;'>🧪 Calibration Spline Curve Tool</p>
+        <p style='margin:4px 0;'>Developed by Dr / Hussein Ali 2026 For <span style='color:#E07B00; font-weight:bold;'>Orange Lab</span> 🍊</p>
+    </div>
+""", unsafe_allow_html=True)
