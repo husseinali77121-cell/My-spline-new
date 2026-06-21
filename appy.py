@@ -7,7 +7,74 @@ from datetime import datetime
 
 st.set_page_config(page_title="Calibration Spline Curve Tool", page_icon="🧪", layout="wide")
 
-st.title("🧪 Calibration Spline Curve Tool")
+# ══════════════════════════════════════════════════════════════
+# HIDE STREAMLIT UI ELEMENTS (GitHub icon, menu, footer)
+# ══════════════════════════════════════════════════════════════
+st.markdown("""
+    <style>
+        /* Hide top-right hamburger menu */
+        #MainMenu {visibility: hidden;}
+        /* Hide footer "Made with Streamlit" */
+        footer {visibility: hidden;}
+        /* Hide header (contains GitHub icon) */
+        header {visibility: hidden;}
+        /* Hide Deploy button */
+        .stDeployButton {display: none;}
+        /* Hide View Source / Manage app toolbar */
+        [data-testid="stToolbar"] {visibility: hidden !important;}
+        [data-testid="manage-app-button"] {display: none !important;}
+    </style>
+""", unsafe_allow_html=True)
+
+# ══════════════════════════════════════════════════════════════
+# EMAIL LOGIN — via Streamlit Secrets
+# ══════════════════════════════════════════════════════════════
+# secrets.toml format:
+# [allowed_emails]
+# emails = ["dr.hussein@orangelab.com", "user2@example.com"]
+# [app]
+# password = "your_password_here"
+
+def check_login(email: str, password: str) -> bool:
+    try:
+        allowed = st.secrets["allowed_emails"]["emails"]
+        app_pass = st.secrets["app"]["password"]
+        return email.strip().lower() in [e.lower() for e in allowed] and password == app_pass
+    except Exception:
+        return False
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_center = st.columns([1, 1.2, 1])[1]
+    with col_center:
+        st.markdown("## 🧪 Calibration Spline Curve Tool")
+        st.markdown("---")
+        st.markdown("#### 🔐 تسجيل الدخول")
+        login_email = st.text_input("البريد الإلكتروني", placeholder="example@lab.com", key="login_email")
+        login_pass  = st.text_input("كلمة المرور", type="password", key="login_pass")
+        if st.button("دخول ▶", type="primary", use_container_width=True):
+            if check_login(login_email, login_pass):
+                st.session_state.authenticated = True
+                st.session_state.logged_email = login_email.strip().lower()
+                st.rerun()
+            else:
+                st.error("❌ البريد الإلكتروني أو كلمة المرور غير صحيحة.")
+        st.markdown("<br><center><small>Orange Lab © 2025</small></center>", unsafe_allow_html=True)
+    st.stop()
+
+# ── Logged-in header ────────────────────────────────────────
+col_title, col_user = st.columns([4, 1])
+with col_title:
+    st.title("🧪 Calibration Spline Curve Tool")
+with col_user:
+    st.markdown(f"<br><small>👤 {st.session_state.get('logged_email','')}</small>", unsafe_allow_html=True)
+    if st.button("تسجيل خروج", key="logout"):
+        st.session_state.authenticated = False
+        st.rerun()
+
 st.write("أدخل قيم الامتصاصية والتركيز للحصول على Par A, B, C, D")
 
 # ══════════════════════════════════════════════════════════════
